@@ -1,0 +1,434 @@
+/* =============================================================
+   SkillOS — Stylesheet
+   Architecture:
+     1. Base resets & typography refinement
+     2. Tree (node, connectors, indentation)
+     3. Checkbox component
+     4. Drawer/modal motion
+     5. Search highlight & filter states
+     6. Drag-and-drop styles
+     7. Utility helpers
+   ============================================================= */
+
+/* ---------- 1. Base ---------- */
+* { -webkit-tap-highlight-color: transparent; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-feature-settings: 'cv02','cv03','cv04','cv11';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.12);
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* ---------- 2. Tree ---------- */
+.tree-node {
+  position: relative;
+}
+
+.node-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+  min-height: 32px;
+}
+
+.node-row:hover {
+  background-color: rgb(244 244 245); /* ink-100 */
+}
+.dark .node-row:hover {
+  background-color: rgb(24 24 27); /* ink-900 */
+}
+
+.node-row.is-active {
+  background-color: rgb(244 244 245);
+}
+.dark .node-row.is-active {
+  background-color: rgb(24 24 27);
+}
+
+/* Caret */
+.caret {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(161 161 170);
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 120ms ease;
+}
+.caret:hover { background-color: rgba(0,0,0,0.05); }
+.dark .caret:hover { background-color: rgba(255,255,255,0.06); }
+.caret.is-empty { visibility: hidden; }
+.caret.is-open { transform: rotate(90deg); }
+
+/* Label */
+.node-label {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.node-label .label-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-label[contenteditable="true"] .label-text {
+  outline: none;
+  border-bottom: 1px solid rgb(161 161 170);
+  white-space: normal;
+  overflow: visible;
+  padding-bottom: 1px;
+}
+
+/* Completed state */
+.node-row.is-done .label-text {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  color: rgb(161 161 170);
+}
+
+/* Children container */
+.tree-children {
+  position: relative;
+  margin-left: 17px; /* aligns vertical connector under caret */
+  padding-left: 14px;
+  overflow: hidden;
+}
+
+/* Vertical connector */
+.tree-children::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 8px;
+  width: 1px;
+  background: rgb(228 228 231); /* ink-200 */
+}
+.dark .tree-children::before {
+  background: rgb(39 39 42); /* ink-800 */
+}
+
+/* Per-node horizontal connector */
+.tree-node > .node-row::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 11px;
+  height: 1px;
+  background: rgb(228 228 231);
+}
+.dark .tree-node > .node-row::before {
+  background: rgb(39 39 42);
+}
+
+/* Root nodes have no connector */
+#tree > .tree-node > .node-row::before { display: none; }
+
+/* Depth-based subtle font weight */
+#tree > .tree-node > .node-row .label-text {
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+/* Progress mini bar */
+.mini-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(113 113 122);
+  flex-shrink: 0;
+}
+.mini-progress-bar {
+  width: 28px;
+  height: 3px;
+  background: rgb(228 228 231);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.dark .mini-progress-bar { background: rgb(39 39 42); }
+.mini-progress-bar > span {
+  display: block;
+  height: 100%;
+  background: rgb(24 24 27);
+  border-radius: 2px;
+  transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .mini-progress-bar > span { background: rgb(244 244 245); }
+
+/* Node action buttons */
+.node-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  flex-shrink: 0;
+}
+.node-row:hover .node-actions,
+.node-row:focus-within .node-actions {
+  opacity: 1;
+}
+.node-actions button {
+  padding: 4px;
+  border-radius: 4px;
+  color: rgb(113 113 122);
+}
+.node-actions button:hover {
+  background: rgba(0,0,0,0.06);
+  color: rgb(24 24 27);
+}
+.dark .node-actions button:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgb(244 244 245);
+}
+
+/* Notes indicator dot */
+.has-notes-dot {
+  width: 5px;
+  height: 5px;
+  background: rgb(59 130 246);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---------- 3. Checkbox ---------- */
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid rgb(212 212 216);
+  background: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 150ms ease;
+  position: relative;
+}
+.dark .checkbox {
+  border-color: rgb(63 63 70);
+  background: rgb(9 9 11);
+}
+.checkbox:hover {
+  border-color: rgb(113 113 122);
+}
+.checkbox.is-checked {
+  background: rgb(24 24 27);
+  border-color: rgb(24 24 27);
+}
+.dark .checkbox.is-checked {
+  background: rgb(244 244 245);
+  border-color: rgb(244 244 245);
+}
+.checkbox.is-partial {
+  background: rgb(244 244 245);
+  border-color: rgb(212 212 216);
+}
+.dark .checkbox.is-partial {
+  background: rgb(39 39 42);
+  border-color: rgb(82 82 91);
+}
+.checkbox .check-icon,
+.checkbox .partial-icon {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.checkbox.is-checked .check-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+.checkbox.is-partial .partial-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+.checkbox .check-icon { color: white; }
+.dark .checkbox.is-checked .check-icon { color: rgb(24 24 27); }
+.checkbox .partial-icon { color: rgb(113 113 122); }
+
+/* Drawer status checkbox (larger) */
+#drawerCheckbox.is-checked {
+  background: rgb(24 24 27);
+  border-color: rgb(24 24 27);
+}
+.dark #drawerCheckbox.is-checked {
+  background: rgb(244 244 245);
+  border-color: rgb(244 244 245);
+}
+#drawerCheckbox svg { opacity: 0; transition: opacity 150ms; }
+#drawerCheckbox.is-checked svg { opacity: 1; }
+
+/* ---------- 4. Drawer / modal motion ---------- */
+#drawer.is-open { transform: translateX(0); }
+#drawerBackdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+#modalBackdrop.is-open,
+#helpBackdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+#modalBackdrop.is-open #modal { transform: scale(1); }
+
+/* ---------- 5. Search highlight & filter ---------- */
+.search-highlight {
+  background: rgb(254 240 138);
+  color: rgb(24 24 27);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.dark .search-highlight {
+  background: rgb(133 77 14);
+  color: rgb(254 240 138);
+}
+
+.tree-node.is-hidden-by-search { display: none; }
+.tree-node.is-search-match > .node-row {
+  background-color: rgb(254 252 232);
+}
+.dark .tree-node.is-search-match > .node-row {
+  background-color: rgba(133, 77, 14, 0.18);
+}
+
+/* ---------- 6. Drag & drop ---------- */
+.tree-node.is-dragging > .node-row {
+  opacity: 0.4;
+}
+
+.drop-indicator-before > .node-row {
+  box-shadow: inset 0 2px 0 rgb(59 130 246);
+}
+.drop-indicator-after > .node-row {
+  box-shadow: inset 0 -2px 0 rgb(59 130 246);
+}
+.drop-indicator-inside > .node-row {
+  background-color: rgba(59,130,246,0.08) !important;
+  box-shadow: inset 0 0 0 1px rgb(59 130 246);
+}
+
+.drag-handle {
+  cursor: grab;
+  color: rgb(212 212 216);
+  opacity: 0;
+  transition: opacity 120ms ease;
+  flex-shrink: 0;
+}
+.dark .drag-handle { color: rgb(63 63 70); }
+.node-row:hover .drag-handle { opacity: 1; }
+.drag-handle:active { cursor: grabbing; }
+
+/* ---------- 7. Resource items ---------- */
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgb(250 250 250);
+  border: 1px solid rgb(228 228 231);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.dark .resource-item {
+  background: rgb(24 24 27);
+  border-color: rgb(39 39 42);
+}
+.resource-item input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  min-width: 0;
+}
+.resource-item a {
+  color: rgb(59 130 246);
+  text-decoration: none;
+}
+.resource-item a:hover { text-decoration: underline; }
+.resource-item button {
+  color: rgb(161 161 170);
+  padding: 2px;
+  border-radius: 4px;
+}
+.resource-item button:hover {
+  background: rgba(0,0,0,0.05);
+  color: rgb(220 38 38);
+}
+.dark .resource-item button:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+/* ---------- 8. Roadmap menu ---------- */
+#roadmapMenu .roadmap-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 0 4px;
+}
+#roadmapMenu .roadmap-item:hover {
+  background: rgb(244 244 245);
+}
+.dark #roadmapMenu .roadmap-item:hover {
+  background: rgb(24 24 27);
+}
+#roadmapMenu .roadmap-item.is-current {
+  font-weight: 500;
+}
+#roadmapMenu .roadmap-item .pct {
+  font-size: 11px;
+  color: rgb(161 161 170);
+  font-variant-numeric: tabular-nums;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ---------- 9. Toast ---------- */
+#toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+/* ---------- 10. Utility ---------- */
+.no-anim, .no-anim * { transition: none !important; animation: none !important; }
+
+/* Mobile refinements */
+@media (max-width: 640px) {
+  .node-actions { opacity: 1; } /* always show on touch */
+  .drag-handle { display: none; } /* drag not supported on touch in this version */
+}
